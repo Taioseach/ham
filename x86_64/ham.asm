@@ -2,15 +2,36 @@ bits 64
 
 %include "x86_64/defs.asm"
 
+section .bss
+    ; Resuable memblock to hold multiple values
+    ; struct stat size chosen as min required
+    internal_mem:        resb STAT_SIZE
+    %define blocks_count [internal_mem]
+    %define rem_size     [internal_mem + 8]
+    %define st_mode      [internal_mem + ST_MODE_OFFSET]
+    %define st_size      [internal_mem + ST_SIZE_OFFSET]
+
+
 section .text
-global _start
+    global _start
+
 _start:
     ; Move stack pointer to argv
     add rsp, 8
 
+    ; Get file stat
+    mov rax, sys_stat
+    mov rdi, [rsp+8]              ; argv[1] - filename
+    mov rsi, internal_mem
+    syscall
+
+    ; Check if no error
+    test rax, rax
+    jl err_exit
+
     ; Open file to overwrite
     mov rax, sys_open
-    mov rdi, [rsp+8]              ; argv[1]
+    ; rdi skipped, setup in sys_stat
     mov rsi, O_WRONLY
     mov rdx, 0o600
     syscall
@@ -22,10 +43,18 @@ _start:
     ; Backup fd
     push rax
 
+    ; Setup block counter
+    mov rax, st_size
+    xor rdx, rdx
+    mov rbx, BUF_SIZE
+    div rbx
+    mov blocks_count, rax
+    mov rem_size, rdx
+
     ; Allocate null bytes buffer
     mov rax, sys_mmap
     xor rdi, rdi                  ; NULL
-    mov rsi, PAGE_SIZE
+    mov rsi, BUF_SIZE
     mov rdx, PROT_READ
     mov r10, MAP_PRIVATE | MAP_ANONYMOUS
     mov r8, -1,                   ; no fd (required)
@@ -38,24 +67,34 @@ _start:
 
     ; Write
     mov rsi, rax                  ; null buffer ptr
-    mov rdx, PAGE_SIZE
+    mov rdx, BUF_SIZE
     pop rdi                       ; fd to write
     write:
         mov rax, sys_write
         syscall
-
         ; Check if no error code
         test rax, rax
         js err_exit
 
-        dec dword [block_counter]
-        cmp dword [block_counter], 0
+        dec dword blocks_count
+        cmp dword blocks_count, 0
         jne write
+
+        ; Write remainder (if non-zero)
+        mov rdx, rem_size
+        test rdx, rdx
+        jz end_write
+        mov rax, sys_write
+        syscall
+        ; Check if no error code
+        test rax, rax
+        js err_exit
+    end_write:
 
     ; Deallocate buffer
     mov rdx, rdi                  ; backup fd
     mov rdi, rsi
-    mov rsi, PAGE_SIZE
+    mov rsi, BUF_SIZE
     mov rax, sys_munmap
     syscall
 
@@ -95,10 +134,6 @@ err_exit:
     mov rax, sys_exit
     mov rdi, 1
     syscall
-
-
-section .data
-    block_counter: dd 131072
 
 
 section .rodata

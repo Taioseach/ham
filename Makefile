@@ -14,4 +14,4 @@ ham.x86_64.o: x86_64/ham.asm
 
 .PHONY: clean
 clean:
-	rm *.o ham.x86_64
+	$(RM) -f *.o ham.x86_64
