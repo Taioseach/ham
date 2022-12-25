@@ -28,6 +28,9 @@ _start:
     ; Check if no error
     test rax, rax
     jl err_exit
+    ; Check if size not empty (if so, exit)
+    cmp qword st_size, 0
+    jz exit
 
     ; Open file to overwrite
     mov rax, sys_open
@@ -69,6 +72,8 @@ _start:
     mov rsi, rax                  ; null buffer ptr
     mov rdx, BUF_SIZE
     pop rdi                       ; fd to write
+    cmp qword blocks_count, 0     ; check if invoke block write
+    je rem_write
     write:
         mov rax, sys_write
         syscall
@@ -76,11 +81,12 @@ _start:
         test rax, rax
         js err_exit
 
-        dec dword blocks_count
-        cmp dword blocks_count, 0
+        dec qword blocks_count
+        cmp qword blocks_count, 0
         jne write
 
         ; Write remainder (if non-zero)
+        rem_write:
         mov rdx, rem_size
         test rdx, rdx
         jz end_write
@@ -98,10 +104,12 @@ _start:
     mov rax, sys_munmap
     syscall
 
-    ; Close and exit
+    ; Close file
     mov rax, sys_close
     mov rdi, rdx
     syscall
+    ; Exit
+exit:
     mov rax, sys_exit
     mov rdi, 0
     syscall

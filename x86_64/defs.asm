@@ -8,25 +8,27 @@
 %define sys_munmap      11
 %define sys_exit        60
 
-; IO
-%define STDIN           0
+; IO: std
 %define STDOUT          1
 %define STDERR          2
 
-; Access modes
+; IO: access modes
 %define O_RDONLY        0
 %define O_WRONLY        1
 
-; Flags
+; IO: flags
 %define O_CREAT         64
 %define O_TRUNC         512
 
-; mmap constants
+; IO: error codes
+;%define 
+
+; mmap: flags
 %define PROT_READ       1
 %define MAP_PRIVATE     2
 %define MAP_ANONYMOUS   32
 
-; struct stat const
+; struct stat: consts
 %define STAT_SIZE       114
 %define ST_MODE_OFFSET  24
 %define ST_SIZE_OFFSET  48
