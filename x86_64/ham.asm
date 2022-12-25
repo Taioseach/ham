@@ -1,6 +1,6 @@
 bits 64
 
-%include "common.asm"
+%include "x86_64/defs.asm"
 
 section .text
 global _start
@@ -25,7 +25,7 @@ _start:
     ; Allocate null bytes buffer
     mov rax, sys_mmap
     xor rdi, rdi                  ; NULL
-    mov rsi, BUFSIZE
+    mov rsi, PAGE_SIZE
     mov rdx, PROT_READ
     mov r10, MAP_PRIVATE | MAP_ANONYMOUS
     mov r8, -1,                   ; no fd (required)
@@ -38,7 +38,7 @@ _start:
 
     ; Write
     mov rsi, rax                  ; null buffer ptr
-    mov rdx, BUFSIZE
+    mov rdx, PAGE_SIZE
     pop rdi                       ; fd to write
     write:
         mov rax, sys_write
@@ -55,7 +55,7 @@ _start:
     ; Deallocate buffer
     mov rdx, rdi                  ; backup fd
     mov rdi, rsi
-    mov rsi, BUFSIZE
+    mov rsi, PAGE_SIZE
     mov rax, sys_munmap
     syscall
 
@@ -103,8 +103,7 @@ section .data
 
 section .rodata
     ; Error messages
-    err_msg:       db "Unable to write to file"
+    err_msg:       db "Unable to write to file "
     err_msg_len:   equ $-err_msg
 
     newline:       db `\n`
-

@@ -25,5 +25,5 @@
 %define MAP_PRIVATE     2
 %define MAP_ANONYMOUS   32
 
-; Other
-%define BUFSIZE         8192
+; Linux memory page size
+%define PAGE_SIZE       4096
