@@ -5,23 +5,25 @@ bits 64
 section .bss
     ; Resuable memblock to hold multiple values
     ; struct stat size chosen as min required
-    internal_mem:        resb STAT_SIZE
-    %define blocks_count [internal_mem]
-    %define rem_size     [internal_mem + 8]
-    %define st_mode      [internal_mem + ST_MODE_OFFSET]
-    %define st_size      [internal_mem + ST_SIZE_OFFSET]
+    internal_mem:        resb INT_MEM_SIZE
+    %define blocks_count [internal_mem + B_COUNT_OFF]
+    %define rem_size     [internal_mem + REM_SIZE_OFF]
+    %define st_mode      [internal_mem + ST_MODE_OFF]
+    %define st_size      [internal_mem + ST_SIZE_OFF]
 
 
 section .text
     global _start
 
 _start:
-    ; Move stack pointer to argv
-    add rsp, 8
+    ; Check if argc < 2 (if so, exit)
+    mov rdi, [rsp]
+    cmp rdi, 2
+    jl exit
 
     ; Get file stat
     mov rax, sys_stat
-    mov rdi, [rsp+8]              ; argv[1] - filename
+    mov rdi, [rsp+16]             ; argv[1] - filename
     mov rsi, internal_mem
     syscall
 
@@ -116,24 +118,45 @@ exit:
 
 
 err_exit:
+    ; Backup errno
+    mov r10, rax
+    neg r10
+
+    ; Write filename
     mov rax, sys_write
     mov rdi, STDERR
-    mov rsi, err_msg
-    mov rdx, err_msg_len
+    mov rsi, [rsp+16]
+    mov rdx, rsi
+    fname_len:
+        inc rdx
+        mov bl, byte[rdx]
+        cmp bl, 0
+        jne fname_len
+    sub rdx, rsi
     syscall
 
+    ; Write err message preamble
     mov rax, sys_write
-    mov rsi, [rsp+8]
-    mov r8, [rsp+8]
-    arg_len:
-        ; Calc filename len
-        inc r8
-        cmp byte [r8], 0
-        jnz arg_len
-    mov rdx, r8
-    sub rdx, [rsp+8]
+    mov rsi, err_pre_msg
+    mov rdx, err_pre_msg_len
     syscall
 
+    ; Write specific error message
+    mov rax, sys_write
+    mov r9, err_lookup_table
+    err_lookup:
+        ; Linear search in error lookup table
+        cmp byte[r9], r10b
+        je end_err_lookup
+        add r9, err_lookup_row_len
+        cmp r9, err_lookup_table_end
+        jne err_lookup
+    end_err_lookup:
+    mov rsi, [r9+2]
+    mov dl, [r9+1]
+    syscall
+
+    ; Newline
     mov rax, sys_write
     mov rsi, newline
     mov rdx, 1
@@ -146,7 +169,45 @@ err_exit:
 
 section .rodata
     ; Error messages
-    err_msg:       db "Unable to write to file "
-    err_msg_len:   equ $-err_msg
+    err_pre_msg:        db ": Failed to overwrite file - "
+    err_pre_msg_len:    equ $-err_pre_msg
 
-    newline:       db `\n`
+    ; Error msg table
+    err_msgs_table:
+        enoent_msg:           db ENOENT_MSG
+        enoent_msg_len:       equ $-enoent_msg
+        eacces_msg:           db EACCES_MSG
+        eacces_msg_len:       equ $-eacces_msg
+        ebusy_msg:            db EBUSY_MSG
+        ebusy_msg_len:        equ $-ebusy_msg
+        eisdir_msg:           db EISDIR_MSG
+        eisdir_msg_len:       equ $-eisdir_msg
+        enfile_msg:           db ENFILE_MSG
+        enfile_msg_len:       equ $-enfile_msg
+        enametoolong_msg:     db ENAMETOOLONG_MSG
+        enametoolong_msg_len: equ $-enametoolong_msg
+        eunexpect:            db EUNEXPECT_MSG
+        eunexpect_len:        equ $-eunexpect
+
+    ; Error lookup table
+    ; fmt: <byte: err code>, <byte: err msg len>, <quad: err msg addr> = 10 bytes
+    err_lookup_row_len: equ 10
+    err_lookup_table:
+        db ENOENT, enoent_msg_len
+        dq enoent_msg
+        db EACCES, eacces_msg_len
+        dq eacces_msg
+        db EBUSY, ebusy_msg_len
+        dq ebusy_msg
+        db EISDIR, eisdir_msg_len
+        dq eisdir_msg
+        db ENFILE, enfile_msg_len
+        dq enfile_msg
+        db ENAMETOOLONG, enametoolong_msg_len
+        dq enametoolong_msg
+    err_lookup_table_end:
+        db 0, eunexpect_len
+        dq eunexpect
+
+    ; Other const strings/chars
+    newline: db `\n`

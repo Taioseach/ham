@@ -20,18 +20,34 @@
 %define O_CREAT         64
 %define O_TRUNC         512
 
-; IO: error codes
-;%define 
-
 ; mmap: flags
 %define PROT_READ       1
 %define MAP_PRIVATE     2
 %define MAP_ANONYMOUS   32
 
-; struct stat: consts
-%define STAT_SIZE       114
-%define ST_MODE_OFFSET  24
-%define ST_SIZE_OFFSET  48
+; Errors
+%define ENOENT          2
+%define EACCES          13
+%define EBUSY           16
+%define EISDIR          21
+%define ENFILE          23
+%define ENAMETOOLONG    36
+
+%define ENOENT_MSG       "No such file"
+%define EACCES_MSG       "Permission denied"
+%define EBUSY_MSG        "Is busy"
+%define EISDIR_MSG       "Is a directory"
+%define ENFILE_MSG       "System-wide open file limit reached"
+%define ENAMETOOLONG_MSG "File name too long"
+
+%define EUNEXPECT_MSG    "Unexpected error"
+
+; internal mem: consts
+%define INT_MEM_SIZE    114
+%define B_COUNT_OFF     0
+%define REM_SIZE_OFF    8
+%define ST_MODE_OFF     24
+%define ST_SIZE_OFF     48
 
 ; Linux memory page size
 %define PAGE_SIZE       4096
