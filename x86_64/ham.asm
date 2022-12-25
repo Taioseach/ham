@@ -20,7 +20,7 @@ _start:
     ; Check if argc < 2 (if so, exit)
     mov rdi, [rsp]
     cmp rdi, 2
-    jl exit
+    jl help
 
     ; Get file stat
     mov rax, sys_stat
@@ -167,9 +167,22 @@ err_exit:
     mov rdi, 1
     syscall
 
+help:
+    mov rax, sys_write
+    mov rdi, STDOUT
+    mov rsi, help_msg
+    mov rdx, help_msg_len
+    syscall
+
+    mov rax, sys_exit
+    mov rdi, 0
+    syscall
+
 
 section .rodata
     %include "common/err_table.asm"
 
     ; Other const strings/chars
-    newline: db `\n`
+    help_msg:     db "Usage: ham.", ARCH, ` FILE\n`
+    help_msg_len: equ $-help_msg
+    newline:      db `\n`
