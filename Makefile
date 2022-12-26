@@ -1,17 +1,19 @@
+BUILD_DIR=build
+
 NASM=nasm
 LINKER=ld
 STRIP=strip
-RM=rm
 
 X86_64_FLAGS=-f elf64
 
-ham.x86_64: ham.x86_64.o
+$(BUILD_DIR)/x86_64/ham: $(BUILD_DIR)/x86_64/ham.o
 	$(LINKER) -o $@ $^
 	$(STRIP) $@
 
-ham.x86_64.o: x86_64/ham.asm
+$(BUILD_DIR)/x86_64/ham.o: x86_64/ham.asm
+	mkdir -p $(BUILD_DIR)/x86_64
 	$(NASM) $(X86_64_FLAGS) -o $@ $^
 
 .PHONY: clean
 clean:
-	$(RM) -f *.o ham.x86_64
+	rm -rf build

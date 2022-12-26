@@ -1,9 +1,6 @@
 %ifndef X86_64_DEFS
 %define X86_64_DEFS
 
-; Arch
-%define ARCH            "x86_64"
-
 ; Syscalls
 %define sys_read        0
 %define sys_write       1
