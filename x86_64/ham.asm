@@ -236,8 +236,7 @@ help:
 
 section .rodata
     %include "common/err_table.asm"
+    %include "common/help.asm"
 
     ; Other const strings/chars
-    help_msg:     db `Usage: ham FILE\n`
-    help_msg_len: equ $-help_msg
     newline:      db `\n`
