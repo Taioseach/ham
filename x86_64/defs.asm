@@ -16,7 +16,9 @@
 %define INT_MEM_SIZE       114
 %define B_COUNT_OFF        0
 %define REM_SIZE_OFF       8
+%define FD_OFF             16
 %define ST_MODE_OFF        24
+%define BUF_PTR_OFF        32
 %define ST_SIZE_OFF        48
 %define TIMESPEC_OFF       56
 %define TV_NSEC_OFF        64

@@ -9,7 +9,9 @@ section .bss
     internal_mem:        resb INT_MEM_SIZE
     %define blocks_count internal_mem + B_COUNT_OFF
     %define rem_size     internal_mem + REM_SIZE_OFF
+    %define fd           internal_mem + FD_OFF
     %define st_mode      internal_mem + ST_MODE_OFF
+    %define buf_ptr      internal_mem + BUF_PTR_OFF
     %define st_size      internal_mem + ST_SIZE_OFF
     %define timespec     internal_mem + TIMESPEC_OFF
     %define tv_nsec      internal_mem + TV_NSEC_OFF
@@ -72,7 +74,7 @@ _start:
     jl err_exit
 
     ; Backup fd
-    push rax
+    mov [fd], rax
 
     ; Setup block counter
     mov rax, [st_size]
@@ -97,7 +99,7 @@ _start:
     jl err_exit
 
     ; Backup buffer ptr
-    push rax
+    mov [buf_ptr], rax
 
     ; Setup Lehmer RNG init state
     ; Init 64 bytes == nanoseconds from current time
@@ -107,11 +109,11 @@ _start:
     syscall
     mov rax, [tv_nsec]
     or rax, 1                     ; ensure seed is odd
-    pop rsi                       ; buffer ptr
+    mov rsi, [buf_ptr]            ; buffer ptr
     mov [rsi + BUF_SIZE - 8], rax ; save in end of buffer (reinitialized later)
 
     ; Write
-    pop rdi                       ; fd to write
+    mov rdi, [fd]                 ; fd to write
     ; rsi with buffer ptr set above
     mov r8, LEHMER_MUL            ; Lehmer multiplier
     ; check if invoke block write
