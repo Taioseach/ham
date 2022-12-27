@@ -21,8 +21,10 @@ err_msgs_table:
     enfile_msg_len:       equ $-enfile_msg
     enametoolong_msg:     db ENAMETOOLONG_MSG
     enametoolong_msg_len: equ $-enametoolong_msg
-    eunexpect:            db EUNEXPECT_MSG
-    eunexpect_len:        equ $-eunexpect
+    emediumtype_msg:      db EMEDIUMTYPE_MSG
+    emediumtype_msg_len:  equ $-emediumtype_msg
+    eunexpect_msg:        db EUNEXPECT_MSG
+    eunexpect_len:        equ $-eunexpect_msg
 
 ; Error lookup table
 ; fmt: <byte: err code>, <byte: err msg len>, <quad: err msg addr> = 10 bytes
@@ -40,8 +42,10 @@ err_lookup_table:
     dq enfile_msg
     db ENAMETOOLONG, enametoolong_msg_len
     dq enametoolong_msg
+    db EMEDIUMTYPE, emediumtype_msg_len
+    dq emediumtype_msg
 err_lookup_table_end:
     db 0, eunexpect_len
-    dq eunexpect
+    dq eunexpect_msg
 
 %endif ; COMMON_ERR_TABLE

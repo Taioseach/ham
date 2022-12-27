@@ -59,6 +59,12 @@ _start:
     ; Check if no error
     test rax, rax
     jl err_exit
+    ; Check type: only regular files and block devices allowed
+    mov rax, [st_mode]
+    and rax, S_IFMT
+    cmp rax, S_IFREG
+    mov rax, -EMEDIUMTYPE
+    jne err_exit
     ; Check if size not empty (if so, exit)
     cmp qword [st_size], 0
     jz exit

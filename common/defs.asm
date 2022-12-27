@@ -13,6 +13,10 @@
 %define O_CREAT           64
 %define O_TRUNC           512
 
+; IO: file types
+%define S_IFMT            0o170000  ; file type bitmask
+%define S_IFREG           0o100000  ; regular file
+
 ; mmap: protection flags
 %define PROT_READ         1
 %define PROT_WRITE        2
@@ -28,6 +32,7 @@
 %define EISDIR            21
 %define ENFILE            23
 %define ENAMETOOLONG      36
+%define EMEDIUMTYPE       124
 
 %define EPRE_MSG          ": Failed to overwrite file - "
 
@@ -37,6 +42,7 @@
 %define EISDIR_MSG        "Is a directory"
 %define ENFILE_MSG        "System-wide open file limit reached"
 %define ENAMETOOLONG_MSG  "File name too long"
+%define EMEDIUMTYPE_MSG   "Invalid type, only regular files allowed"
 
 %define EUNEXPECT_MSG     "Unexpected error"
 
