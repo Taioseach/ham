@@ -14,7 +14,7 @@ section .bss
     %define buf_ptr      internal_mem + BUF_PTR_OFF
     %define st_size      internal_mem + ST_SIZE_OFF
     %define timespec     internal_mem + TIMESPEC_OFF
-    %define tv_nsec      internal_mem + TV_NSEC_OFF
+    %define rng_seed     internal_mem + RNG_SEED_OFF
 
 
 section .text
@@ -107,7 +107,7 @@ _start:
     mov rdi, CLOCK_REALTIME
     mov rsi, timespec
     syscall
-    mov rax, [tv_nsec]
+    mov rax, [rng_seed]           ; use timespec->tv_nsec as Lehmer rng seed
     or rax, 1                     ; ensure seed is odd
     mov rsi, [buf_ptr]            ; buffer ptr
     mov [rsi + BUF_SIZE - 8], rax ; save in end of buffer (reinitialized later)

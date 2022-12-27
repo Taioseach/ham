@@ -21,13 +21,10 @@
 %define BUF_PTR_OFF        32
 %define ST_SIZE_OFF        48
 %define TIMESPEC_OFF       56
-%define TV_NSEC_OFF        64
-
-; Linux memory page size
-%define PAGE_SIZE          4096
+%define RNG_SEED_OFF       64
 
 ; Heap buffer size for write (32kb)
-%define BUF_SIZE           (PAGE_SIZE * 8)
+%define BUF_SIZE           32768
 
 ; Lehmer RNG multiplier
 %define LEHMER_MUL         -2696494805208442699
