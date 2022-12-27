@@ -65,7 +65,6 @@ _start:
     mov rax, sys_open
     ; rdi skipped, setup in sys_stat
     mov rsi, O_WRONLY
-    mov rdx, 0o600
     syscall
 
     ; Check if fd < 0
